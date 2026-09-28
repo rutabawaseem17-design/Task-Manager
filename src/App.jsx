@@ -16,6 +16,9 @@ import {
   CircleAlert,
   Sparkles,
   X,
+  Menu,
+  Sun,
+  Moon,
 } from 'lucide-react'
 
 import './App.css'
@@ -49,7 +52,6 @@ function App() {
     },
   ]
 
-
   const [tasks, setTasks] = useState(() => {
     try {
       const savedTasks = localStorage.getItem('taskly-tasks')
@@ -64,12 +66,8 @@ function App() {
     }
   })
 
-
-
   const [loading, setLoading] = useState(false)
   const [apiMessage, setApiMessage] = useState('')
-
-
 
   const [currentHour, setCurrentHour] = useState(
     new Date().getHours()
@@ -93,13 +91,9 @@ function App() {
     greeting = 'Good afternoon!'
   }
 
-
-
   useEffect(() => {
     const savedTasks = localStorage.getItem('taskly-tasks')
 
-    // If we already have tasks, use LocalStorage.
-    // No need to call the API again.
     if (savedTasks) {
       return
     }
@@ -129,7 +123,6 @@ function App() {
 
         setTasks(apiTasks)
 
-        // Save API tasks locally
         localStorage.setItem(
           'taskly-tasks',
           JSON.stringify(apiTasks)
@@ -137,8 +130,6 @@ function App() {
       } catch (error) {
         console.error('API Error:', error)
 
-        // API failed, but don't break the app.
-        // Use default tasks instead.
         setTasks(defaultTasks)
 
         localStorage.setItem(
@@ -157,7 +148,6 @@ function App() {
     fetchTasks()
   }, [])
 
-
   useEffect(() => {
     if (tasks.length > 0) {
       localStorage.setItem(
@@ -167,26 +157,45 @@ function App() {
     }
   }, [tasks])
 
-
   const [activePage, setActivePage] = useState('Dashboard')
 
+  // =========================
+  // MOBILE MENU
+  // =========================
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // =========================
+  // THEME
+  // =========================
+
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('taskly-theme') === 'dark'
+  })
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode')
+      localStorage.setItem('taskly-theme', 'dark')
+    } else {
+      document.body.classList.remove('dark-mode')
+      localStorage.setItem('taskly-theme', 'light')
+    }
+  }, [darkMode])
+
+  const toggleTheme = () => {
+    setDarkMode((current) => !current)
+  }
 
   const [taskInput, setTaskInput] = useState('')
   const [priority, setPriority] = useState('Medium')
   const [dueDate, setDueDate] = useState('')
 
-
-
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('All')
 
-
-
   const [editingId, setEditingId] = useState(null)
   const [editingText, setEditingText] = useState('')
-
-
 
   const addTask = () => {
     if (taskInput.trim() === '') return
@@ -209,8 +218,6 @@ function App() {
     setDueDate('')
   }
 
-
-
   const toggleTask = (id) => {
     setTasks((currentTasks) =>
       currentTasks.map((task) =>
@@ -224,15 +231,11 @@ function App() {
     )
   }
 
-
-
   const deleteTask = (id) => {
     setTasks((currentTasks) =>
       currentTasks.filter((task) => task.id !== id)
     )
   }
-
-
 
   const startEditing = (task) => {
     setEditingId(task.id)
@@ -469,6 +472,37 @@ function App() {
       ========================= */}
 
       <aside className="sidebar">
+
+        {/* MOBILE HAMBURGER */}
+
+        <button
+          className="mobile-menu-button"
+          onClick={() =>
+            setMobileMenuOpen(!mobileMenuOpen)
+          }
+          aria-label="Toggle navigation"
+        >
+          {mobileMenuOpen ? (
+            <X size={22} />
+          ) : (
+            <Menu size={22} />
+          )}
+        </button>
+
+        {/* MOBILE THEME */}
+
+        <button
+          className="mobile-theme-toggle"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+        >
+          {darkMode ? (
+            <Sun size={20} />
+          ) : (
+            <Moon size={20} />
+          )}
+        </button>
+
         <div className="logo">
           <div className="logo-image">
             <img
@@ -483,16 +517,23 @@ function App() {
           </div>
         </div>
 
-        <nav className="navigation">
+        <nav
+          className={`navigation ${
+            mobileMenuOpen
+              ? 'mobile-open'
+              : ''
+          }`}
+        >
           <button
             className={
               activePage === 'Dashboard'
                 ? 'nav-item active'
                 : 'nav-item'
             }
-            onClick={() =>
+            onClick={() => {
               setActivePage('Dashboard')
-            }
+              setMobileMenuOpen(false)
+            }}
           >
             <LayoutDashboard size={19} />
             Dashboard
@@ -504,9 +545,10 @@ function App() {
                 ? 'nav-item active'
                 : 'nav-item'
             }
-            onClick={() =>
+            onClick={() => {
               setActivePage('My Tasks')
-            }
+              setMobileMenuOpen(false)
+            }}
           >
             <ListTodo size={19} />
             My Tasks
@@ -522,9 +564,10 @@ function App() {
                 ? 'nav-item active'
                 : 'nav-item'
             }
-            onClick={() =>
+            onClick={() => {
               setActivePage('Completed')
-            }
+              setMobileMenuOpen(false)
+            }}
           >
             <CheckCircle2 size={19} />
             Completed
@@ -562,7 +605,7 @@ function App() {
             <header className="top-header">
               <div>
                 <p className="greeting">
-                  Welcome  
+                  Welcome
                 </p>
 
                 <h1>{greeting}</h1>
@@ -572,12 +615,31 @@ function App() {
                 </p>
               </div>
 
-              <div className="date-box">
-                <CalendarDays size={18} />
+              <div className="header-actions">
+                <div className="date-box">
+                  <CalendarDays size={18} />
 
-                <span>
-                 {new Date().getMonth() + 1} , {new Date().getDate()} , {new Date().getFullYear()}
-                </span>
+                  <span>
+                    {new Date().getMonth() + 1} , {new Date().getDate()} , {new Date().getFullYear()}
+                  </span>
+                </div>
+
+                <button
+                  className="theme-toggle"
+                  onClick={toggleTheme}
+                  aria-label="Toggle theme"
+                  title={
+                    darkMode
+                      ? 'Light mode'
+                      : 'Dark mode'
+                  }
+                >
+                  {darkMode ? (
+                    <Sun size={19} />
+                  ) : (
+                    <Moon size={19} />
+                  )}
+                </button>
               </div>
             </header>
 
@@ -848,7 +910,7 @@ function App() {
                   <CheckCircle2 size={45} />
 
                   <h3>
-                    All caught up! 
+                    All caught up!
                   </h3>
 
                   <p>
@@ -873,7 +935,7 @@ function App() {
             <div className="page-header">
               <div>
                 <p className="greeting">
-                  Nice work! 
+                  Nice work!
                 </p>
 
                 <h1>Completed Tasks</h1>
@@ -918,4 +980,4 @@ function App() {
   )
 }
 
-export default App 
+export default App
