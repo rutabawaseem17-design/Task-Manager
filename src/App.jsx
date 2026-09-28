@@ -576,7 +576,7 @@ function App() {
                 <CalendarDays size={18} />
 
                 <span>
-                  September 25, 2026
+                 {new Date().getMonth() + 1} , {new Date().getDate()} , {new Date().getFullYear()}
                 </span>
               </div>
             </header>
